@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  api:
+    container_name: api_s04-13
+    build: .
+    ports:
+      - 3000:3000
+    environment:
+      - PORT=3000
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=caio
+      - DB_PASSWORD=1234
+      - DB=demo
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app
+
+  db:
+    container_name: db_s04-13
+    image: postgres:12.11-alpine
+    ports:
+      - 5431:5432
+    environment:
+      - POSTGRES_USER=caio
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=demo
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U caio -d demo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - ./create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+      - postgres_demo:/var/lib/postgresql/data
+
+volumes:
+  postgres_demo:
+    driver: local
